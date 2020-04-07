@@ -14,12 +14,14 @@ def customer_thread():
             print("the queue is to long >.<")
             break
         print("buyed grocerys")
+    servEv.clear()
 
 def station_thread():
     arrEv.wait()
     time.sleep(QEUETIME)
     print("finished with station")
     servEv.set()
+    arrEv.clear()
 
 def main():
     customer = threading.Thread(target=customer_thread)
