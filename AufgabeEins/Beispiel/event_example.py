@@ -57,5 +57,4 @@ s=Thread(target=summe)
 a.start()
 c.start()
 s.start()
-addEv.set()        
-
+addEv.set()

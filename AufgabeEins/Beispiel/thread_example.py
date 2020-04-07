@@ -19,12 +19,14 @@ class Adder(Thread):
             n=n+self.n
             print('Adder Class %d: %d' % (self.n,n))
 
-N=500        
+N=500
 a=Thread(target=add1,args=(N,))
 a2=Adder(2,N)
 s2=Adder(-2,N)
 a2.start()
 a.start()
 s2.start()
-        
+if __name__ == '__main__':
+    Adder(2,N).start()
+
 
