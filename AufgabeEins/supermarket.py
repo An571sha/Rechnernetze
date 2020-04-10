@@ -7,28 +7,29 @@ servEv = threading.Event
 QEUETIME = 10
 CUSTOMERTIME = 40
 
-def customer_thread():
-    while not finished:
+class mythread(threading.Thread):
+
+    def customer_thread():
         arrEv.set()
         if servEv.wait(timeout=CUSTOMERTIME):
-            print("the queue is to long >.<")
-            break
-        print("buyed grocerys")
-    servEv.clear()
+            servEv.clear()
+            return "buyed grocerys"
+        servEv.clear()
+        return"the queue is to long >.<"
 
-def station_thread():
-    arrEv.wait()
-    time.sleep(QEUETIME)
-    print("finished with station")
-    servEv.set()
-    arrEv.clear()
+    def station_thread():
+        arrEv.wait()
+        time.sleep(QEUETIME)
+        print("finished with station")
+        servEv.set()
+        arrEv.clear()
 
-def main():
-    customer = threading.Thread(target=customer_thread)
-    station = threading.Thread(target=station_thread)
+    def main():
+        customer = threading.Thread(target=mythread.customer_thread)
+        station = threading.Thread(target=mythread.station_thread)
 
-    customer.start()
-    station.start()
+        customer.start()
+        station.start()
 
 if __name__ == '__main__':
-    main()
+    mythread.main()
