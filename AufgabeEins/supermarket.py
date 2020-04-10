@@ -1,35 +1,34 @@
 import threading
 import time
+import logging
 
-finished = False
-arrEv = threading.Event
-servEv = threading.Event
-QEUETIME = 10
-CUSTOMERTIME = 40
+logging.basicConfig(level=logging.DEBUG,
+                    format='[%(levelname)s] (%(threadName)-1s) %(message)s')
 
-class mythread(threading.Thread):
+event = threading.Event()
+arrEv = threading.Event()
+CUSTOMER_TIME= 10
+STATION_TIME= 5
 
-    def customer_thread():
-        arrEv.set()
-        if servEv.wait(timeout=CUSTOMERTIME):
-            servEv.clear()
-            return "buyed grocerys"
-        servEv.clear()
-        return"the queue is to long >.<"
-
-    def station_thread():
-        arrEv.wait()
-        time.sleep(QEUETIME)
-        print("finished with station")
-        servEv.set()
+def customer():
+    event.set()
+    if arrEv.wait(timeout=CUSTOMER_TIME):
+        event.clear()
+        logging.debug('buyed grocerys')
         arrEv.clear()
+        return
+    arrEv.clear()
+    logging.debug('the queue is to long >.<')
 
-    def main():
-        customer = threading.Thread(target=mythread.customer_thread)
-        station = threading.Thread(target=mythread.station_thread)
+def station():
+    event.wait()
+    time.sleep(STATION_TIME)
+    logging.debug('finished with station')
+    arrEv.set()
+    event.clear()
 
-        customer.start()
-        station.start()
+t1 = threading.Thread(name='customer', target=customer)
+t2 = threading.Thread(name='station', target=station)
 
-if __name__ == '__main__':
-    mythread.main()
+t1.start()
+t2.start()
