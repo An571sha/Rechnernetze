@@ -1,11 +1,6 @@
 import itertools
 from heapq import heappush, heappop
 
-# Kunde sollte eine Liste mit 3er Tupel haben,die Tupel beschreiben dann
-# 1. Maximal Zeit zum warten
-# 2. Gekäufte Menge von Artikel
-# 3. ??
-
 counter = itertools.count()
 
 
@@ -13,9 +8,18 @@ class Customer:
     def __init__(self, name, customer_info):
         self.name = name
         self.position = 0
-        self.total_time_spent = customer_info[0]
+        self.walking_time = customer_info[0]
         self.wait_time_max = customer_info[1]
         self.items_purchased = customer_info[2]
+
+    def stations_visited(self):
+        return len(self.walking_time)
+
+    def walk(self):
+        return self.walking_time[self.position]
+
+    def increment_position(self):
+        self.position += 1
 
 
 class Station:
@@ -35,6 +39,13 @@ class Station:
             self.is_busy = 0
 
 
+# stations and customers according to example -
+stations = [Station("Baecker", 10, []),
+            Station("Wursttheke", 30, []),
+            Station("Kaesetheke", 60, []),
+            Station("Kasse", 5, [])]
+
+
 class Events:
     heap = []
     simulation_time = 0
@@ -43,12 +54,6 @@ class Events:
     visiting_order = ([0, 2, 1, 3], [0, 1, 2, 3])
 
     # TODO: add methods - pop, start, calculate total time shopping, waiting and walking
-
-    # stations and customers according to example -
-    stations = [Station("Baecker", 10, []),
-                Station("Wursttheke", 30, []),
-                Station("Kaesetheke", 60, []),
-                Station("Kasse", 5, [])]
 
     # Bäcker - Wursttheke - Käsetheke - Kasse
     customer_type_one = ([10, 30, 45, 60], [10, 10, 5, 20], [10, 5, 3, 30])
@@ -70,4 +75,45 @@ class Events:
         info_for_heap = [start_time, count, customer, walking_buying_waiting, visiting_order]
         heappush(self.heap, info_for_heap)
 
-    
+    def get_events(self):
+        zip()
+
+
+def customer_enters(customer, order):
+    if customer.wait_time_max() > len(stations[order[customer.position()]].wait_list):
+        if stations[order[customer.position]].is_busy == 0:
+            return customer_service(customer, order)
+        else:
+            return customer_waiting(customer, order)
+
+    else:
+        customer.increment_position()
+        return customer_walking(customer, order)
+
+
+def customer_waiting(customer, order):
+    # add customer to the station's Waiting List
+    stations[order[customer.position()]].add(customer)
+    # returns the waiting time
+    return len(stations[order[customer.getPosition()]].wait_list) * stations[
+        order[customer.getPosition()]].duration_processing, customer_service
+
+
+def customer_walking(customer, order):
+    return customer.walk(), customer_enters
+
+
+def customer_service(customer, order):
+    if (customer.stations_visited - 1) == customer.position:
+        return stations[order[customer.position()]].duration_processing * customer.items_purchased[
+            customer.position], end
+    else:
+        tmp = stations[order[customer.position]].duration_processing * customer.items_purchased[customer.getPosition()]
+        customer.increment_position()
+        return tmp, customer_walking
+
+
+def end():
+    print("end")
+    return 0
+
