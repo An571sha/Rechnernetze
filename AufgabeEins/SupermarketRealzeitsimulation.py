@@ -1,6 +1,7 @@
 import threading
 import time
 import logging
+import concurrent.futures
 
 logging.basicConfig(level=logging.DEBUG,
                     format='[%(levelname)s] (%(threadName)-1s) %(message)s')
@@ -16,16 +17,17 @@ queue = []
 
 
 def customer_thread():
-    lock_customer.acquire()
-    event.set()
-    if arrEv.wait(timeout=CUSTOMER_TIME):
-        logging.debug('buyed grocerys')
-        arrEv.clear()
+    while True:
+        lock_customer.acquire()
+        event.set()
+        if arrEv.wait(timeout=CUSTOMER_TIME):
+            logging.debug('buyed grocerys')
+            arrEv.clear()
+            lock_customer.release()
+            return
         lock_customer.release()
-        return
-    lock_customer.release()
-    arrEv.clear()
-    logging.debug('the queue is to long >.<')
+        arrEv.clear()
+        logging.debug('the queue is to long >.<')
 
 
 def station_thread():
@@ -41,14 +43,6 @@ def station_thread():
         event.clear()
 
 
-def main():
-    t1 = threading.Thread(name='customer', target=customer_thread)
-    t3 = threading.Thread(name='customer', target=customer_thread)
-    t2 = threading.Thread(name='station', target=station_thread)
-    t1.start()
-    t3.start()
-    t2.start()
-
-
-if __name__ == '__main__':
-    main()
+with concurrent.futures.ThreadPoolExecutor() as executor:
+    station = executor.submit(station_thread)
+    customers = [executor.submit(customer_thread) for _ in range(3)]
