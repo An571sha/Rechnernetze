@@ -19,7 +19,7 @@ class Customer(Thread):
         while self.current_task is not None:
             time.sleep(self.current_task.walking_time // self.DIVISOR)
             station = self.current_task.station
-            station.lock.aquier()
+            station.lock.acquire()
             if station.is_busy and len(station.queue) > self.current_task.max_queue_time:
                 self.skip_task()
                 station.lock.release()

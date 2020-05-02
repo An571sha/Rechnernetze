@@ -17,7 +17,7 @@ class Station(Thread):
 
     def run(self):
         while not self.killEv.isSet():
-            if self.arrEv.wait(10)is not True:
+            if self.arrEv.wait(10) is not True:
                 continue
             self.is_busy = True
             while len(self.queue) != 0:
