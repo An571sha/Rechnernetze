@@ -93,7 +93,7 @@ average_shopping_time_completed = 0
 for k in list(filter(lambda e: len(e.skipped_tasks) == 0, customers)):
     average_shopping_time_completed += (k.time_end - k.time_start).total_seconds()
 average_shopping_time_completed /= len(customers)
-print(f"Duchschnitliche Einkaufsdauer (ohne ueberspringen): {average_shopping_time_completed}s")
+print(f"Duchschnitliche Einkaufsdauer (vollständig): {average_shopping_time_completed}s")
 
 #stations where the queue was too long
 all_skipped_stations = []
