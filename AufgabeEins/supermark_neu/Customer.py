@@ -15,7 +15,7 @@ class Customer:
     def incPosition(self):
         self.Position += 1
 
-    def walk(self):
+    def get_walk_time(self):
         return self.walk_time[self.Position]
 
     def get_maximum_wait_time_at_position(self):

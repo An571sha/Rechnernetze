@@ -5,11 +5,6 @@ import heapq
 
 counter = itertools.count()
 
-# Output Text Declare
-Customerdoc = open('supermarkt_customer.txt', 'a')
-stationDoc = open('supermarkt_station.txt', 'a')
-supermarktDoc = open('supermarkt.txt', 'a')
-
 Stations = []
 Stations.append(Station(10, [], "Bäcker"))
 Stations.append(Station(60, [], "Käse"))
@@ -29,14 +24,7 @@ class Erignislist:
 
     def add_to_queue(self, time, typ_ino, tfunc, order):
         count = next(counter)
-        prio = 3
-        if tfunc == leave_station:
-            prio = 0
-        elif tfunc == arrive:
-            prio = 2
-        else:
-            prio = 1
-        heap_info = [time, prio, count, typ_ino, tfunc, order]
+        heap_info = [time, count, typ_ino, tfunc, order]
         heapq.heappush(self.heap, heap_info)
 
     def start(self):
@@ -60,105 +48,108 @@ class Erignislist:
     def event_handler(self):
         while self.heap:
 
-            time, prio, count, customer, func, order = self.pop_from_queue()
+            time, count, customer, func, order = self.pop_from_queue()
 
             if func == "begin":
                 print(str(time) + " time " + str(time) + " customer " + customer.Name + " " + func)
-                m_time, m_func, msg = leave_station(customer, order)
+                m_time, next_func = self.leave_station(customer, order)
                 time = time + m_time
-                self.add_to_queue(time, customer, m_func, order)
-                print(str(m_time) + " time " + str(time) + " customer " + customer.Name + " " + m_func + " at station " + Stations[order[customer.get_position()]].Name)
+                self.add_to_queue(time, customer, next_func, order)
+                print(
+                    str(m_time) + " time " + str(
+                        time) + " customer " + customer.Name + " " + next_func + " at station " +
+                    Stations[order[customer.get_position()]].Name)
 
             if func == "leave_station":
-                m_time, m_func, msg = leave_station(customer, order)
+                m_time, next_func = self.leave_station(customer, order)
                 time = time + m_time
-                self.add_to_queue(time, customer, m_func, order)
-                print(str(m_time) + " time " + str(time) + " customer " + customer.Name + " " + m_func + " at station " + Stations[order[customer.get_position()]].Name)
+                self.add_to_queue(time, customer, next_func, order)
+                print(
+                    str(m_time) + " time " + str(
+                        time) + " customer " + customer.Name + " " + next_func + " at station " +
+                    Stations[order[customer.get_position()]].Name)
 
             elif func == "arrive":
-                m_time, m_func, msg = arrive(customer, order)
+                m_time, next_func = self.arrive(customer, order)
                 time = time + m_time
-                self.add_to_queue(time, customer, m_func, order)
-                print(str(m_time) + " time " + str(time) + " customer " + customer.Name + " " + m_func + " at station " + Stations[order[customer.get_position()]].Name)
+                self.add_to_queue(time, customer, next_func, order)
+                print(
+                    str(m_time) + " time " + str(
+                        time) + " customer " + customer.Name + " " + next_func + " at station " +
+                    Stations[order[customer.get_position()]].Name)
 
             elif func == "wait":
-                m_time, m_func, msg = wait(customer, order)
+                m_time, next_func = self.wait(customer, order)
                 time = time + m_time
-                self.add_to_queue(time, customer, m_func, order)
+                self.add_to_queue(time, customer, next_func, order)
 
             elif func == "end":
-                m_time, m_func, msg = end(customer, order)
+                m_time, next_func = self.end(customer, order)
                 time = time + m_time
-                self.add_to_queue(time, customer, m_func, order)
+                self.add_to_queue(time, customer, next_func, order)
                 print(str(m_time) + " time " + str(time) + " customer " + customer.Name + " leaves the supermarket ")
 
             else:
-                leave_supermarket()
-
-            if msg != "":
-                Customerdoc.write(str(time) + ":" + msg + "\n")
-                Customerdoc.write(str(Stations[0].waiting_queue) + "\n")
+                self.leave_supermarket()
 
         else:
-            print("Simulationsende      : " + str(time) + "s", file=supermarktDoc)
-            supermarktDoc.write("Simulationsende      : " + str(time) + "s")
-            Customerdoc.close()
-            stationDoc.close()
-            supermarktDoc.close()
+            print("hehe")
 
+    def arrive(self, customer, order):
 
-def leave_station(customer, order):
-    msg = ""
-    if customer.get_position() != -1:
-        msg = (customer.Name + " Finished at " + Stations[order[customer.get_position()]].Name)
-        Stations[order[customer.get_position()]].remove(customer)
-    customer.incPosition()
-    return customer.walk(), "arrive", msg
+        # if customer can wait let him in ---
+        if customer.get_maximum_wait_time_at_position() > len(Stations[order[customer.get_position()]].waiting_queue):
 
+            # if station not busy begin with service ---
+            if not self.current_station(Stations, customer, order).is_busy:
+                self.current_station(Stations, customer, order).add_to_queue(customer)
+                time, func = self.service(customer, order)
+                return time, func
 
-def wait(customer, order):
-    if Stations[order[customer.get_position()]].isMyTurn(customer.Name):
-        zeit, func, msg = service(customer, order)
-        return zeit, func, msg
-    else:
-        return 1, "wait", ""
+            # else add him in the the waiting list ---
+            else:
+                self.current_station(Stations, customer, order).add_to_queue(customer)
 
+                # pop the first waiting customer out ---
+                time, func = self.wait(customer, order)
+                return time, func
 
-def arrive(customer, order):
-    if customer.get_maximum_wait_time_at_position() > len(Stations[order[customer.get_position()]].waiting_queue):
-        msg = (customer.Name + " Queueing at " + Stations[order[customer.get_position()]].Name)
-        if Stations[order[customer.get_position()]].is_busy == False:
-            Stations[order[customer.get_position()]].add(customer)
-            zeit, func, msgtmp = service(customer, order)
-            return zeit, func, msg
+        # else leave the station ---
         else:
-            Stations[order[customer.get_position()]].add(customer)
-            zeit, func, msgtmp = wait(customer, order)
-            return zeit, func, msg
-    else:
+            time, func = self.leave_station(customer, order)
+            return time, func
 
-        msg = (customer.Name + " Dropped at " + Stations[order[customer.get_position()]].Name)
-        zeit, func, msgtmp = leave_station(customer, order)
-        return zeit, func, msg
+    def service(self, customer, order):
+        if (customer.possible_buying_points() - 1) == customer.get_position():
+            return self.current_station(Stations, customer, order).duration * customer.items_bought[
+                customer.get_position()], "end"
+        else:
+            return self.current_station(Stations, customer, order).duration * customer.items_bought[
+                customer.get_position()], "leave_station"
 
+    def leave_station(self, customer, order):
+        if customer.get_position() != -1:
+            self.current_station(Stations, customer, order).remove(customer)
+        customer.incPosition()
+        return customer.get_walk_time(), "arrive"
 
-def end(customer, order):
-    msg = (customer.Name + " Finished at " + Stations[order[customer.get_position()]].Name)
-    Stations[order[customer.get_position()]].remove(customer)
-    return 0, "leave_supermarket", msg
+    def wait(self, customer, order):
+        if self.current_station(Stations, customer, order).is_current_customer(customer.Name):
+            print("here comes service after wait")
+            time, func = self.service(customer, order)
+            return time, func
+        else:
+            return 1, "wait"
 
+    def end(self, customer, order):
+        self.current_station(Stations, customer, order).remove(customer)
+        return 0, "leave_supermarket"
 
-def leave_supermarket():
-    return 0
+    def leave_supermarket(self):
+        return 0
 
-
-def service(customer, order):
-    if (customer.possible_buying_points() - 1) == customer.get_position():
-        msg = (customer.Name + " Buying at " + Stations[order[customer.get_position()]].Name)
-        return Stations[order[customer.get_position()]].duration * customer.items_bought[customer.get_position()], "end", msg
-    else:
-        tmp = Stations[order[customer.get_position()]].duration * customer.items_bought[customer.get_position()]
-        return tmp, "leave_station", ""
+    def current_station(self, stations, customer, order):
+        return stations[order[customer.get_position()]]
 
 
 a = Erignislist()
