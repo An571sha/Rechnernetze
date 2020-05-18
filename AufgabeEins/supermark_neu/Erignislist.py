@@ -93,12 +93,12 @@ class Erignislist:
                 self.leave_supermarket()
 
         else:
-            print("hehe")
+            print("ende - Gelände")
 
     def arrive(self, customer, order):
 
         # if customer can wait let him in ---
-        if customer.get_maximum_wait_time_at_position() > len(Stations[order[customer.get_position()]].waiting_queue):
+        if customer.get_maximum_wait_time_at_position() > len(self.current_station(Stations, customer, order).waiting_queue):
 
             # if station not busy begin with service ---
             if not self.current_station(Stations, customer, order).is_busy:
@@ -109,12 +109,12 @@ class Erignislist:
             # else add him in the the waiting list ---
             else:
                 self.current_station(Stations, customer, order).add_to_queue(customer)
-
+                print("         ---->", "Wait List", Stations[order[customer.get_position()]].waiting_queue)
                 # pop the first waiting customer out ---
                 time, func = self.wait(customer, order)
                 return time, func
 
-        # else leave the station ---
+        # else leave the station and move to next one ---
         else:
             time, func = self.leave_station(customer, order)
             return time, func
@@ -135,7 +135,7 @@ class Erignislist:
 
     def wait(self, customer, order):
         if self.current_station(Stations, customer, order).is_current_customer(customer.Name):
-            print("here comes service after wait")
+            print("Here comes service after wait for", customer.Name)
             time, func = self.service(customer, order)
             return time, func
         else:
@@ -152,5 +152,6 @@ class Erignislist:
         return stations[order[customer.get_position()]]
 
 
-a = Erignislist()
-a.start()
+if __name__ == '__main__':
+    a = Erignislist()
+    a.start()
