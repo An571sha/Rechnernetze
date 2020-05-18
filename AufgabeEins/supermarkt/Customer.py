@@ -1,10 +1,22 @@
 class Customer:
-    def __init__(self, name):
+
+    def __init__(self, name, customer_info):
         self.name = name
-        if name[0] == "A":
-            self.tasks = list([(10, 10, 10), (30, 10, 5), (45, 5, 3), (60, 20, 30)])
-        elif name[0] == "B":
-            self.tasks = list([(30, 5, 2), (30, 20, 3), (20, 20, 3)])
+        self.position = 0
+        self.customer_info = customer_info
+        self.walktime = customer_info[0]
+        self.max_queuetime = customer_info[1]
+        self.items_bought = customer_info[2]
+        self.station = customer_info[3]
+
+    def get_position(self):
+        return self.position
+
+    def inc_position(self):
+        self.position += 1
+
+    def get_which_station(self):
+        return self.station[self.position]
 
     def __lt__(self, other):
         return self.name < other.name

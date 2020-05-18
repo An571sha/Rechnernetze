@@ -3,132 +3,125 @@ from supermarkt.Customer import Customer
 import heapq
 
 
-class Erignislist:
-    def __init__(self, time, eventnumber):
-        self.heapq = []
-        self.time = time
-        self.number = eventnumber
+class EventsList:
 
-        self.begin_event = 'B'
-        self.arrive_event = 'A'
-        self.leave_event = 'V'
-
-        self.start_simulation(0, 200, self.time, "A")
-        self.start_simulation(1, 60, self.time, "B")
-
-        self.baecker = Station('Bäcker', 10)
-        self.wursttheke = Station('Metzger', 30)
-        self.kaesetheke = Station('Käse', 60)
-        self.kasse = Station('Kasse', 5)
+    def __init__(self):
+        self.total_customers = 0
+        self.time_elapsed = 0
+        self.queue = []
 
     def pop(self):
-        return heapq.heappop(self.heapq)
+        return heapq.heappop(self.queue)
 
-    def push(self, event):
-        heapq.heappush(self.heapq, event)
+    def push(self, heap_info):
+        heapq.heappush(self.queue, heap_info)
 
-    def start_simulation(self, initial_time, start_time, time_elapsed, typ):
-        t = initial_time
-        priority = 0
-        customer_id = 1
 
-        while t < time_elapsed:
-            self.push((t, priority, self.begin_event, Customer(typ + str(customer_id))))
-            t += start_time
-            customer_id += 1
+station_list = []
 
-    def start(self):
-        while self.heapq:
-            # keeping popping from the list till the list is empty or all events are complete
-            time, prio, event, customer = self.pop()
+station_list.append(Station("Bäcker", 10, 0))
+station_list.append(Station("Käse", 60, 1))
+station_list.append(Station("Metzger", 30, 2))
+station_list.append(Station("Kasse", 5, 3))
 
-            if event == self.begin_event:
+cust_typ_one = ([10, 30, 45, 60], [10, 10, 5, 20], [10, 5, 3, 30], [0, 2, 1, 3])
+cust_typ_two = ([30, 30, 20], [5, 20, 20], [2, 3, 3], [2, 3, 0])
 
-                # Begin the Simulation AND add a arrive event(A) at position 0
-                self.push((time + customer.tasks[0][0], 2, 'A0', customer))
+C1 = Customer("T1/K1", cust_typ_one)
 
-            elif event[0] == self.arrive_event:
+C2 = Customer("T2/K1", cust_typ_two)
 
-                position = int(event[1])
+C3 = Customer("T2/K2", cust_typ_two)
 
-                if customer.name[0] == 'A':
+C4 = Customer("T2/K3", cust_typ_two)
 
-                    if position == 0:
-                        self.customer_arrive(time, position, customer, self.baecker)
-                    elif position == 1:
-                        self.customer_arrive(time, position, customer, self.wursttheke)
-                    elif position == 2:
-                        self.customer_arrive(time, position, customer, self.kaesetheke)
-                    else:
-                        self.customer_arrive(time, position, customer, self.kasse)
-                else:
+C5 = Customer("T2/K4", cust_typ_two)
 
-                    if position == 0:
-                        self.customer_arrive(time, position, customer, self.wursttheke)
-                    elif position == 1:
-                        self.customer_arrive(time, position, customer, self.kasse)
-                    else:
-                        self.customer_arrive(time, position, customer, self.baecker)
+C6 = Customer("T1/K2", cust_typ_one)
 
-            elif event[0] == self.leave_event:
+# C7 = Customer("T1/K3", cust_typ_one)
 
-                position = int(event[1])
+# C8 = Customer("T1/K4", cust_typ_one)
 
-                if customer.name[0] == 'A':
+events = EventsList()
 
-                    if position == 0:
-                        self.customer_leave(time, position, customer, self.baecker)
-                    elif position == 1:
-                        self.customer_leave(time, position, customer, self.wursttheke)
-                    elif position == 2:
-                        self.customer_leave(time, position, customer, self.kaesetheke)
-                    else:
-                        self.customer_leave(time, position, customer, self.kasse)
-                else:
+events.push((0, C1, "begin"))
+events.push((1, C2, "begin"))
+events.push((61, C3, "begin"))
+events.push((121, C4, "begin"))
+events.push((181, C5, "begin"))
+events.push((200, C6, "begin"))
 
-                    if position == 0:
-                        self.customer_leave(time, position, customer, self.wursttheke)
-                    elif position == 1:
-                        self.customer_leave(time, position, customer, self.kasse)
-                    else:
-                        self.customer_leave(time, position, customer, self.baecker)
 
-    def customer_arrive(self, time, position, customer, station):
-        # if the queue length bigger then  max waiting time, leave
-        if len(station.queue) >= customer.tasks[position][1]:
-            if position < len(customer.tasks) - 1:
-                # if not at the last station. go to the next one
-                self.push((time + customer.tasks[position + 1][0], 2, self.arrive_event + str(position + 1), customer))
-            customer.action(time, 'dropped', station)
+# events.push((400, C6, "begin"))
+# events.push((600, C6, "begin"))
+
+
+def customer_arrives(time, station, customer):
+    if customer.get_which_station() == station.number:
+
+        # print("customer max queue time " + str(customer.max_queuetime[customer.get_position()]))
+        # print("customer at station " + str(customer.get_which_station))
+        # print("station queue " + str(len(station.queue)))
+
+        if customer.max_queuetime[customer.get_position()] > len(station.queue):
+            # print("customer position " + str(customer.get_position()))
+            # print("station queue length " + str(len(customer.customer_info) - 1))
+            if customer.position < len(customer.station) - 1:
+                customer.inc_position()
+                print("customer time " + str(customer.walktime[customer.get_position()]))
+                print("customer arrived at station " + str(station.name))
+                events.push((time + customer.customer_info[customer.get_position()][0], customer, 'arrive' +
+                             str(customer.get_position())))
 
         else:
-            station.action(time, 'adding', customer)
-            station.queue.append((customer, position))
+            station.add_queue(customer)
             if not station.is_busy:
-                station.is_busy = True
-                station.action(time, 'serving', customer)
                 station.queue.pop(0)
-                customer.action(time, 'Queueing', station)
-                self.push((time + station.worktime * customer.tasks[position][2], 1, self.leave_event + str(position),
-                           customer))
-            else:
-                customer.action(time, 'Queueing', station)
+                events.push((time + station.worktime * customer.customer_info[customer.position][2], 1,
+                             'leave' + str(customer.position), customer))
+    return time
 
-    def customer_leave(self, time, position, customer, station):
-        customer.action(time, 'Finished', station)
-        station.action(time, 'Finished', customer)
-        if position < len(customer.tasks) - 1:
-            self.push((time + customer.tasks[position + 1][0], 2, self.arrive_event + str(position + 1), customer))
-        if station.queue:
-            next_customer, n_position = station.queue.pop(0)
-            station.action(time, 'serving', next_customer)
-            self.push(
-                (time + next_customer.tasks[n_position][2] * station.worktime, 1, self.leave_event + str(n_position),
-                 next_customer))
+
+def customer_leaves(time, station, customer):
+    if customer.get_which_station() == station.number:
+        print("station leave " + str(len(station.queue)))
+        if customer.position < len(customer.customer_info) - 1:
+            customer.inc_position()
+            events.push(
+                (time + customer.customer_info[customer.position][0], customer, 'arrive' + str(customer.position)))
+
         else:
-            station.is_busy = False
+            next_customer = station.queue.pop(0)
+            events.push((time + next_customer.tasks[next_customer.position][2] * station.worktime, next_customer,
+                         'leave' + str(next_customer.position)))
+    return time
 
 
-if __name__ == "__main__":
-    my_events = Erignislist(2000, 100000)
-    my_events.start()
+def handler(time, customer, event):
+    for station in station_list:
+
+        if "begin" in event:
+
+            time = time + customer.walktime[customer.position]
+            time = customer_arrives(time, station, customer)
+
+        elif "arrive" in event:
+
+            time = customer_arrives(time, station, customer)
+
+        elif "leave":
+
+            time = customer_leaves(time, station, customer)
+
+    return time
+
+
+if __name__ == '__main__':
+    # add event and all varaiable in a tupel
+    while events.queue:
+        mtime, mcustomer, mevent = events.pop()
+        events.time_elapsed = events.time_elapsed + 1
+        events.time_elapsed = handler(mtime, mcustomer, mevent)
+
+    print(events.time_elapsed)
