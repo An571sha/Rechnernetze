@@ -1,0 +1,14 @@
+    Minimum = 9ms, Maximum = 12ms, Average = 9ms
+    Minimum = 9ms, Maximum = 12ms, Average = 9ms
+    Minimum = 8ms, Maximum = 13ms, Average = 9ms
+    Minimum = 9ms, Maximum = 14ms, Average = 10ms
+    Minimum = 9ms, Maximum = 13ms, Average = 10ms
+    Minimum = 8ms, Maximum = 13ms, Average = 9ms
+    Minimum = 8ms, Maximum = 12ms, Average = 9ms
+    Minimum = 8ms, Maximum = 13ms, Average = 9ms
+    Minimum = 9ms, Maximum = 15ms, Average = 10ms
+    Minimum = 9ms, Maximum = 15ms, Average = 10ms
+    Minimum = 9ms, Maximum = 14ms, Average = 10ms
+    Minimum = 10ms, Maximum = 47ms, Average = 13ms
+    Minimum = 9ms, Maximum = 18ms, Average = 11ms
+    Minimum = 9ms, Maximum = 11ms, Average = 9ms
